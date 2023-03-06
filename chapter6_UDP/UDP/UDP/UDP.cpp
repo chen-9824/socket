@@ -5,12 +5,15 @@
 #include <Winsock2.h>
 #include <Ws2tcpip.h>
 #include <string>
-
+#include "udpClient.h"
 
 #pragma comment(lib,"Ws2_32.lib")
 
+#pragma warning(disable : 4996)
+
 int main()
 {
+#if 0
     //std::cout << "Hello World!\n";
     //WSAStartup
     WSADATA wsaData;
@@ -29,20 +32,33 @@ int main()
         return 1;
     }
 
+
+    // 设置超时
+    u_long argp = 1;
+    ioctlsocket(sock, FIONBIO, &argp);
+
     //send
     SOCKADDR_IN serverAddr;
     memset(&serverAddr, 0, sizeof(serverAddr));
     serverAddr.sin_family = AF_INET;
+    //inet_addr被弃用
     //serverAddr.sin_addr.s_addr = inet_addr("192.168.147.129");
-    ret = InetPton(AF_INET, TEXT("192.168.147.129"), &serverAddr.sin_addr.s_addr);
+    //新用法
+    //ret = InetPton(AF_INET, TEXT("192.168.147.129"), &serverAddr.sin_addr.s_addr);
+    //如果是广播
+    ret = InetPton(AF_INET, TEXT("255.255.255.255"), &serverAddr.sin_addr.s_addr);
     /*if (sock != 1) {
         std::cout << "InetPton failed" << std::endl;
         return 1;
     }*/
     serverAddr.sin_port = htons(9190);
+    //设置是否广播
+    int broadEnable = 1;
+    setsockopt(sock, SOL_SOCKET, SO_BROADCAST, (char*)&broadEnable, sizeof(broadEnable));
     std::string msg;
     int recvLen;
     char result[30];
+    memset(&result, 0, sizeof(result));
     int serverAddrLen = sizeof(serverAddr);
     while (true)
     {
@@ -50,13 +66,23 @@ int main()
         while (std::getline(std::cin, msg))
         {
             sendto(sock, msg.c_str(), msg.size(), 0, (SOCKADDR*)&serverAddr, serverAddrLen);
+            Sleep(500);
             recvLen = recvfrom(sock, result, 30, 0, (SOCKADDR*)&serverAddr, &serverAddrLen);
-            msg[recvLen] = 0;
-            std::cout << "recv: " << msg << std::endl;
+            if (recvLen != -1) {
+                result[recvLen] = 0;
+            }
+            std::cout << "recv: " << result << std::endl;
+            msg.clear();
         }
     }
     closesocket(sock);
     WSACleanup();
+#endif
+    char result[30];
+    udpInit();
+    getIp(result);
+    std::cout << "result: " << result << std::endl;
+    udpDeinit();
     return 0;
 }
 

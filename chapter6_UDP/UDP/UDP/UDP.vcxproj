@@ -140,6 +140,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="UDP.cpp" />
+    <ClCompile Include="udpClient.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="udpClient.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
